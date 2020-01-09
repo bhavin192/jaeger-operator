@@ -22,10 +22,11 @@ ES_OPERATOR_BRANCH ?= release-4.2
 ES_OPERATOR_IMAGE ?= quay.io/openshift/origin-elasticsearch-operator:4.2
 SDK_VERSION=v0.11.0
 GOPATH ?= "$(HOME)/go"
+GO ?= "go"
 
 LD_FLAGS ?= "-X $(VERSION_PKG).version=$(OPERATOR_VERSION) -X $(VERSION_PKG).buildDate=$(VERSION_DATE) -X $(VERSION_PKG).defaultJaeger=$(JAEGER_VERSION)"
-PACKAGES := $(shell go list ./cmd/... ./pkg/...  ./test/... |  grep -v elasticsearch/v1 | grep -v kafka/v1beta1)
-UNIT_TEST_PACKAGES := $(shell go list ./cmd/... ./pkg/... |  grep -v elasticsearch/v1 | grep -v kafka/v1beta1)
+PACKAGES := $(shell $(GO) list ./cmd/... ./pkg/...  ./test/... |  grep -v elasticsearch/v1 | grep -v kafka/v1beta1)
+UNIT_TEST_PACKAGES := $(shell $(GO) list ./cmd/... ./pkg/... |  grep -v elasticsearch/v1 | grep -v kafka/v1beta1)
 TEST_OPTIONS = $(VERBOSE) -kubeconfig $(KUBERNETES_CONFIG) -namespacedMan ../../deploy/test/namespace-manifests.yaml -globalMan ../../deploy/crds/jaegertracing.io_jaegers_crd.yaml -root .
 
 .DEFAULT_GOAL := build
@@ -33,12 +34,12 @@ TEST_OPTIONS = $(VERBOSE) -kubeconfig $(KUBERNETES_CONFIG) -namespacedMan ../../
 .PHONY: vendor
 vendor:
 	@echo Building vendor...
-	@${GO_FLAGS} go mod vendor
+	@${GO_FLAGS} $(GO) mod vendor
 
 .PHONY: check
 check: vendor
 	@echo Checking...
-	@go fmt $(PACKAGES) > $(FMT_LOG)
+	@$(GO) fmt $(PACKAGES) > $(FMT_LOG)
 	@.ci/import-order-cleanup.sh stdout > $(IMPORT_LOG)
 	@[ ! -s "$(FMT_LOG)" -a ! -s "$(IMPORT_LOG)" ] || (echo "Go fmt, license check, or import ordering failures, run 'make format'" | cat - $(FMT_LOG) $(IMPORT_LOG) && false)
 
@@ -50,7 +51,7 @@ ensure-generate-is-noop: generate
 format: vendor
 	@echo Formatting code...
 	@.ci/import-order-cleanup.sh inplace
-	@go fmt $(PACKAGES)
+	@$(GO) fmt $(PACKAGES)
 
 .PHONY: lint
 lint:
@@ -65,7 +66,7 @@ security:
 .PHONY: build
 build: vendor format
 	@echo Building...
-	@${GO_FLAGS} go build -o $(OUTPUT_BINARY) -ldflags $(LD_FLAGS)
+	@${GO_FLAGS} $(GO) build -o $(OUTPUT_BINARY) -ldflags $(LD_FLAGS)
 
 .PHONY: docker
 docker:
@@ -83,7 +84,7 @@ endif
 .PHONY: unit-tests
 unit-tests:
 	@echo Running unit tests...
-	@go test $(VERBOSE) $(UNIT_TEST_PACKAGES) -cover -coverprofile=cover.out
+	@$(GO) test $(VERBOSE) $(UNIT_TEST_PACKAGES) -cover -coverprofile=cover.out
 
 .PHONY: e2e-tests
 e2e-tests: prepare-e2e-tests e2e-tests-smoke e2e-tests-cassandra e2e-tests-es e2e-tests-self-provisioned-es e2e-tests-streaming e2e-tests-examples1 e2e-tests-examples2
@@ -105,42 +106,42 @@ prepare-e2e-tests: crd build docker push
 .PHONY: e2e-tests-smoke
 e2e-tests-smoke: prepare-e2e-tests
 	@echo Running Smoke end-to-end tests...
-	@BUILD_IMAGE=$(BUILD_IMAGE) go test -tags=smoke ./test/e2e/... $(TEST_OPTIONS)
+	@BUILD_IMAGE=$(BUILD_IMAGE) $(GO) test -tags=smoke ./test/e2e/... $(TEST_OPTIONS)
 
 .PHONY: e2e-tests-cassandra
 e2e-tests-cassandra: prepare-e2e-tests cassandra
 	@echo Running Cassandra end-to-end tests...
-	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) go test -tags=cassandra ./test/e2e/... $(TEST_OPTIONS)
+	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) $(GO) test -tags=cassandra ./test/e2e/... $(TEST_OPTIONS)
 
 .PHONY: e2e-tests-es
 e2e-tests-es: prepare-e2e-tests es
 	@echo Running Elasticsearch end-to-end tests...
-	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) go test -tags=elasticsearch ./test/e2e/... $(TEST_OPTIONS)
+	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) $(GO) test -tags=elasticsearch ./test/e2e/... $(TEST_OPTIONS)
 
 .PHONY: e2e-tests-self-provisioned-es
 e2e-tests-self-provisioned-es: prepare-e2e-tests deploy-es-operator
 	@echo Running Self provisioned Elasticsearch end-to-end tests...
-	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) ES_OPERATOR_NAMESPACE=$(ES_OPERATOR_NAMESPACE) ES_OPERATOR_IMAGE=$(ES_OPERATOR_IMAGE) go test -tags=self_provisioned_elasticsearch ./test/e2e/... $(TEST_OPTIONS)
+	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) ES_OPERATOR_NAMESPACE=$(ES_OPERATOR_NAMESPACE) ES_OPERATOR_IMAGE=$(ES_OPERATOR_IMAGE) $(GO) test -tags=self_provisioned_elasticsearch ./test/e2e/... $(TEST_OPTIONS)
 
 .PHONY: e2e-tests-streaming
 e2e-tests-streaming: prepare-e2e-tests es kafka
 	@echo Running Streaming end-to-end tests...
-	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) KAFKA_NAMESPACE=$(KAFKA_NAMESPACE) go test -tags=streaming ./test/e2e/... $(TEST_OPTIONS)
+	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) KAFKA_NAMESPACE=$(KAFKA_NAMESPACE) $(GO) test -tags=streaming ./test/e2e/... $(TEST_OPTIONS)
 
 .PHONY: e2e-tests-examples1
 e2e-tests-examples1: prepare-e2e-tests es cassandra deploy-es-operator
 	@echo Running Example end-to-end tests part 1...
-	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) KAFKA_NAMESPACE=$(KAFKA_NAMESPACE) go test -tags=examples1 ./test/e2e/... $(TEST_OPTIONS)
+	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) KAFKA_NAMESPACE=$(KAFKA_NAMESPACE) $(GO) test -tags=examples1 ./test/e2e/... $(TEST_OPTIONS)
 
 .PHONY: e2e-tests-examples2
 e2e-tests-examples2: prepare-e2e-tests es kafka deploy-es-operator
 	@echo Running Example end-to-end tests part 2...
-	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) KAFKA_NAMESPACE=$(KAFKA_NAMESPACE) go test -tags=examples2 ./test/e2e/... $(TEST_OPTIONS)
+	@STORAGE_NAMESPACE=$(STORAGE_NAMESPACE) KAFKA_NAMESPACE=$(KAFKA_NAMESPACE) $(GO) test -tags=examples2 ./test/e2e/... $(TEST_OPTIONS)
 
 .PHONY: run
 run: crd
 	@rm -rf /tmp/_cert*
-	@bash -c 'trap "exit 0" INT; POD_NAMESPACE=default OPERATOR_NAME=${OPERATOR_NAME} KUBERNETES_CONFIG=${KUBERNETES_CONFIG} WATCH_NAMESPACE=${WATCH_NAMESPACE} go run -ldflags ${LD_FLAGS} main.go start ${CLI_FLAGS}'
+	@bash -c 'trap "exit 0" INT; POD_NAMESPACE=default OPERATOR_NAME=${OPERATOR_NAME} KUBERNETES_CONFIG=${KUBERNETES_CONFIG} WATCH_NAMESPACE=${WATCH_NAMESPACE} ${GO} run -ldflags ${LD_FLAGS} main.go start ${CLI_FLAGS}'
 
 .PHONY: run-debug
 run-debug: run
@@ -266,7 +267,7 @@ install-sdk:
 
 .PHONY: install-tools
 install-tools:
-	@${GO_FLAGS} go get -u \
+	@${GO_FLAGS} $(GO) get -u \
 		golang.org/x/lint/golint \
 		github.com/securego/gosec/cmd/gosec
 
