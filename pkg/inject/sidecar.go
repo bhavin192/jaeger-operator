@@ -53,10 +53,12 @@ func Sidecar(jaeger *v1.Jaeger, dep *appsv1.Deployment) *appsv1.Deployment {
 		logFields.Debug("adding label to deployment")
 
 		if dep.Labels == nil {
-			dep.Labels = map[string]string{Label: jaeger.Name}
+			dep.Labels = util.ProcessLabels(map[string]string{Label: jaeger.Name})
 		} else {
+			// TODO (bhavin192): fix this needs to be trucated as well
 			dep.Labels[Label] = jaeger.Name
 		}
+
 	}
 
 	return dep

@@ -157,14 +157,15 @@ func createSecret(jaeger *v1.Jaeger, secretName string, data map[string][]byte) 
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
 			Namespace: jaeger.Namespace,
-			Labels: map[string]string{
-				"app":                          "jaeger",
-				"app.kubernetes.io/name":       secretName,
-				"app.kubernetes.io/instance":   jaeger.Name,
-				"app.kubernetes.io/component":  "es-secret",
-				"app.kubernetes.io/part-of":    "jaeger",
-				"app.kubernetes.io/managed-by": "jaeger-operator",
-			},
+			Labels: util.ProcessLabels(
+				map[string]string{
+					"app":                          "jaeger",
+					"app.kubernetes.io/name":       secretName,
+					"app.kubernetes.io/instance":   jaeger.Name,
+					"app.kubernetes.io/component":  "es-secret",
+					"app.kubernetes.io/part-of":    "jaeger",
+					"app.kubernetes.io/managed-by": "jaeger-operator",
+				}),
 			OwnerReferences: []metav1.OwnerReference{util.AsOwner(jaeger)},
 		},
 		Type: corev1.SecretTypeOpaque,

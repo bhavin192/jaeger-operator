@@ -138,16 +138,18 @@ func (ed *ElasticsearchDeployment) Elasticsearch() *esv1.Elasticsearch {
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: ed.Jaeger.Namespace,
 			Name:      esSecret.name,
-			Labels: map[string]string{
-				"app":                         "jaeger",
-				"app.kubernetes.io/name":      esSecret.name,
-				"app.kubernetes.io/instance":  ed.Jaeger.Name,
-				"app.kubernetes.io/component": "elasticsearch",
-				"app.kubernetes.io/part-of":   "jaeger",
-				// We cannot use jaeger-operator label because our controllers would try
-				// to manipulate with objects created by ES operator.
-				//"app.kubernetes.io/managed-by": "jaeger-operator",
-			},
+			// TODO (bhavin192): do we need to process these as well?
+			Labels: util.ProcessLabels(
+				map[string]string{
+					"app":                         "jaeger",
+					"app.kubernetes.io/name":      esSecret.name,
+					"app.kubernetes.io/instance":  ed.Jaeger.Name,
+					"app.kubernetes.io/component": "elasticsearch",
+					"app.kubernetes.io/part-of":   "jaeger",
+					// We cannot use jaeger-operator label because our controllers would try
+					// to manipulate with objects created by ES operator.
+					//"app.kubernetes.io/managed-by": "jaeger-operator",
+				}),
 			OwnerReferences: []metav1.OwnerReference{util.AsOwner(ed.Jaeger)},
 		},
 		Spec: esv1.ElasticsearchSpec{

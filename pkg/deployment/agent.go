@@ -155,14 +155,15 @@ func (a *Agent) Get() *appsv1.DaemonSet {
 }
 
 func (a *Agent) labels() map[string]string {
-	return map[string]string{
-		"app":                          "jaeger", // TODO(jpkroehling): see collector.go in this package
-		"app.kubernetes.io/name":       a.name(),
-		"app.kubernetes.io/instance":   a.jaeger.Name,
-		"app.kubernetes.io/component":  "agent",
-		"app.kubernetes.io/part-of":    "jaeger",
-		"app.kubernetes.io/managed-by": "jaeger-operator",
-	}
+	return util.ProcessLabels(
+		map[string]string{
+			"app":                          "jaeger", // TODO(jpkroehling): see collector.go in this package
+			"app.kubernetes.io/name":       a.name(),
+			"app.kubernetes.io/instance":   a.jaeger.Name,
+			"app.kubernetes.io/component":  "agent",
+			"app.kubernetes.io/part-of":    "jaeger",
+			"app.kubernetes.io/managed-by": "jaeger-operator",
+		})
 }
 
 func (a *Agent) name() string {

@@ -32,14 +32,15 @@ func oauthProxyAuthDelegator(jaeger *v1.Jaeger) rbac.ClusterRoleBinding {
 	return rbac.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
-			Labels: map[string]string{
-				"app":                          "jaeger",
-				"app.kubernetes.io/name":       name,
-				"app.kubernetes.io/instance":   jaeger.Name,
-				"app.kubernetes.io/component":  "service-account",
-				"app.kubernetes.io/part-of":    "jaeger",
-				"app.kubernetes.io/managed-by": "jaeger-operator",
-			},
+			Labels: util.ProcessLabels(
+				map[string]string{
+					"app":                          "jaeger",
+					"app.kubernetes.io/name":       name,
+					"app.kubernetes.io/instance":   jaeger.Name,
+					"app.kubernetes.io/component":  "service-account",
+					"app.kubernetes.io/part-of":    "jaeger",
+					"app.kubernetes.io/managed-by": "jaeger-operator",
+				}),
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion: jaeger.APIVersion,

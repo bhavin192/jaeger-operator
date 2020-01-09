@@ -9,13 +9,15 @@ import (
 
 	v1 "github.com/jaegertracing/jaeger-operator/pkg/apis/jaegertracing/v1"
 	"github.com/jaegertracing/jaeger-operator/pkg/inventory"
+	"github.com/jaegertracing/jaeger-operator/pkg/util"
 )
 
 func (r *ReconcileJaeger) applyClusterRoleBindingBindings(jaeger v1.Jaeger, desired []rbac.ClusterRoleBinding) error {
-	opts := client.MatchingLabels(map[string]string{
-		"app.kubernetes.io/instance":   jaeger.Name,
-		"app.kubernetes.io/managed-by": "jaeger-operator",
-	})
+	opts := client.MatchingLabels(
+		util.ProcessLabels(map[string]string{
+			"app.kubernetes.io/instance":   jaeger.Name,
+			"app.kubernetes.io/managed-by": "jaeger-operator",
+		}))
 	list := &rbac.ClusterRoleBindingList{}
 	if err := r.client.List(context.Background(), list, opts); err != nil {
 		return err

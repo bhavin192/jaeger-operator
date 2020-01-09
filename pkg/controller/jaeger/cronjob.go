@@ -9,15 +9,17 @@ import (
 
 	v1 "github.com/jaegertracing/jaeger-operator/pkg/apis/jaegertracing/v1"
 	"github.com/jaegertracing/jaeger-operator/pkg/inventory"
+	"github.com/jaegertracing/jaeger-operator/pkg/util"
 )
 
 func (r *ReconcileJaeger) applyCronJobs(jaeger v1.Jaeger, desired []batchv1beta1.CronJob) error {
 	opts := []client.ListOption{
 		client.InNamespace(jaeger.Namespace),
-		client.MatchingLabels(map[string]string{
-			"app.kubernetes.io/instance":   jaeger.Name,
-			"app.kubernetes.io/managed-by": "jaeger-operator",
-		}),
+		client.MatchingLabels(util.ProcessLabels(
+			map[string]string{
+				"app.kubernetes.io/instance":   jaeger.Name,
+				"app.kubernetes.io/managed-by": "jaeger-operator",
+			})),
 	}
 	list := &batchv1beta1.CronJobList{}
 	if err := r.client.List(context.Background(), list, opts...); err != nil {

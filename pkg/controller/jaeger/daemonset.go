@@ -9,15 +9,17 @@ import (
 
 	v1 "github.com/jaegertracing/jaeger-operator/pkg/apis/jaegertracing/v1"
 	"github.com/jaegertracing/jaeger-operator/pkg/inventory"
+	"github.com/jaegertracing/jaeger-operator/pkg/util"
 )
 
 func (r *ReconcileJaeger) applyDaemonSets(jaeger v1.Jaeger, desired []appsv1.DaemonSet) error {
 	opts := []client.ListOption{
 		client.InNamespace(jaeger.Namespace),
-		client.MatchingLabels(map[string]string{
-			"app.kubernetes.io/instance":   jaeger.Name,
-			"app.kubernetes.io/managed-by": "jaeger-operator",
-		}),
+		client.MatchingLabels(util.ProcessLabels(
+			map[string]string{
+				"app.kubernetes.io/instance":   jaeger.Name,
+				"app.kubernetes.io/managed-by": "jaeger-operator",
+			})),
 	}
 	list := &appsv1.DaemonSetList{}
 	if err := r.client.List(context.Background(), list, opts...); err != nil {

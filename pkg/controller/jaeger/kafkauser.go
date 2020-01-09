@@ -15,6 +15,7 @@ import (
 	v1 "github.com/jaegertracing/jaeger-operator/pkg/apis/jaegertracing/v1"
 	kafkav1beta1 "github.com/jaegertracing/jaeger-operator/pkg/apis/kafka/v1beta1"
 	"github.com/jaegertracing/jaeger-operator/pkg/inventory"
+	"github.com/jaegertracing/jaeger-operator/pkg/util"
 )
 
 var (
@@ -25,12 +26,13 @@ var (
 func (r *ReconcileJaeger) applyKafkaUsers(jaeger v1.Jaeger, desired []kafkav1beta1.KafkaUser) error {
 	opts := []client.ListOption{
 		client.InNamespace(jaeger.Namespace),
-		client.MatchingLabels(map[string]string{
-			"app.kubernetes.io/instance": jaeger.Name,
+		client.MatchingLabels(util.ProcessLabels(
+			map[string]string{
+				"app.kubernetes.io/instance": jaeger.Name,
 
-			// workaround for https://github.com/strimzi/strimzi-kafka-operator/issues/2107
-			"app.kubernetes.io/managed---by": "jaeger-operator",
-		}),
+				// workaround for https://github.com/strimzi/strimzi-kafka-operator/issues/2107
+				"app.kubernetes.io/managed---by": "jaeger-operator",
+			})),
 	}
 	list := &kafkav1beta1.KafkaUserList{}
 	if err := r.client.List(context.Background(), list, opts...); err != nil {

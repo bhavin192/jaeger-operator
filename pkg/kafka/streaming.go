@@ -5,6 +5,7 @@ import (
 
 	v1 "github.com/jaegertracing/jaeger-operator/pkg/apis/jaegertracing/v1"
 	"github.com/jaegertracing/jaeger-operator/pkg/apis/kafka/v1beta1"
+	"github.com/jaegertracing/jaeger-operator/pkg/util"
 )
 
 // Persistent returns the custom resource for a persistent Kafka
@@ -15,16 +16,17 @@ func Persistent(jaeger *v1.Jaeger) v1beta1.Kafka {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      jaeger.Name,
 			Namespace: jaeger.Namespace,
-			Labels: map[string]string{
-				"app":                         "jaeger",
-				"app.kubernetes.io/name":      jaeger.Name,
-				"app.kubernetes.io/instance":  jaeger.Name,
-				"app.kubernetes.io/component": "kafka",
-				"app.kubernetes.io/part-of":   "jaeger",
+			Labels: util.ProcessLabels(
+				map[string]string{
+					"app":                         "jaeger",
+					"app.kubernetes.io/name":      jaeger.Name,
+					"app.kubernetes.io/instance":  jaeger.Name,
+					"app.kubernetes.io/component": "kafka",
+					"app.kubernetes.io/part-of":   "jaeger",
 
-				// workaround for https://github.com/strimzi/strimzi-kafka-operator/issues/2107
-				"app.kubernetes.io/managed---by": "jaeger-operator",
-			},
+					// workaround for https://github.com/strimzi/strimzi-kafka-operator/issues/2107
+					"app.kubernetes.io/managed---by": "jaeger-operator",
+				}),
 			OwnerReferences: []metav1.OwnerReference{
 				metav1.OwnerReference{
 					APIVersion: jaeger.APIVersion,

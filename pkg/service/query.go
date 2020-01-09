@@ -28,14 +28,15 @@ func NewQueryService(jaeger *v1.Jaeger, selector map[string]string) *corev1.Serv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      GetNameForQueryService(jaeger),
 			Namespace: jaeger.Namespace,
-			Labels: map[string]string{
-				"app":                          "jaeger",
-				"app.kubernetes.io/name":       GetNameForQueryService(jaeger),
-				"app.kubernetes.io/instance":   jaeger.Name,
-				"app.kubernetes.io/component":  "service-query",
-				"app.kubernetes.io/part-of":    "jaeger",
-				"app.kubernetes.io/managed-by": "jaeger-operator",
-			},
+			Labels: util.ProcessLabels(
+				map[string]string{
+					"app":                          "jaeger",
+					"app.kubernetes.io/name":       GetNameForQueryService(jaeger),
+					"app.kubernetes.io/instance":   jaeger.Name,
+					"app.kubernetes.io/component":  "service-query",
+					"app.kubernetes.io/part-of":    "jaeger",
+					"app.kubernetes.io/managed-by": "jaeger-operator",
+				}),
 			Annotations: annotations,
 			OwnerReferences: []metav1.OwnerReference{
 				metav1.OwnerReference{

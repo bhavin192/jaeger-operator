@@ -6,6 +6,7 @@ import (
 
 	"github.com/jaegertracing/jaeger-operator/pkg/apis/jaegertracing/v1"
 	"github.com/jaegertracing/jaeger-operator/pkg/service"
+	"github.com/jaegertracing/jaeger-operator/pkg/util"
 )
 
 // QueryRoute builds a route for jaegertracing/jaeger-query
@@ -41,14 +42,15 @@ func (r *QueryRoute) Get() *corev1.Route {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      r.jaeger.Name,
 			Namespace: r.jaeger.Namespace,
-			Labels: map[string]string{
-				"app":                          "jaeger",
-				"app.kubernetes.io/name":       r.jaeger.Name,
-				"app.kubernetes.io/instance":   r.jaeger.Name,
-				"app.kubernetes.io/component":  "query-route",
-				"app.kubernetes.io/part-of":    "jaeger",
-				"app.kubernetes.io/managed-by": "jaeger-operator",
-			},
+			Labels: util.ProcessLabels(
+				map[string]string{
+					"app":                          "jaeger",
+					"app.kubernetes.io/name":       r.jaeger.Name,
+					"app.kubernetes.io/instance":   r.jaeger.Name,
+					"app.kubernetes.io/component":  "query-route",
+					"app.kubernetes.io/part-of":    "jaeger",
+					"app.kubernetes.io/managed-by": "jaeger-operator",
+				}),
 			OwnerReferences: []metav1.OwnerReference{
 				metav1.OwnerReference{
 					APIVersion: r.jaeger.APIVersion,

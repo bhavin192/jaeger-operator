@@ -9,15 +9,18 @@ import (
 
 	v1 "github.com/jaegertracing/jaeger-operator/pkg/apis/jaegertracing/v1"
 	"github.com/jaegertracing/jaeger-operator/pkg/inventory"
+	"github.com/jaegertracing/jaeger-operator/pkg/util"
 )
 
 func (r *ReconcileJaeger) applyAccounts(jaeger v1.Jaeger, desired []corev1.ServiceAccount) error {
 	opts := []client.ListOption{
 		client.InNamespace(jaeger.Namespace),
-		client.MatchingLabels(map[string]string{
-			"app.kubernetes.io/instance":   jaeger.Name,
-			"app.kubernetes.io/managed-by": "jaeger-operator",
-		}),
+		// TODO (bhavin192): have util.ProcessLabels here
+		client.MatchingLabels(
+			util.ProcessLabels(map[string]string{
+				"app.kubernetes.io/instance":   jaeger.Name,
+				"app.kubernetes.io/managed-by": "jaeger-operator",
+			})),
 	}
 	list := &corev1.ServiceAccountList{}
 	if err := r.client.List(context.Background(), list, opts...); err != nil {

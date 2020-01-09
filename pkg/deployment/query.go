@@ -170,14 +170,15 @@ func (q *Query) Services() []*corev1.Service {
 }
 
 func (q *Query) labels() map[string]string {
-	return map[string]string{
-		"app":                          "jaeger", // TODO(jpkroehling): see collector.go in this package
-		"app.kubernetes.io/name":       q.name(),
-		"app.kubernetes.io/instance":   q.jaeger.Name,
-		"app.kubernetes.io/component":  "query",
-		"app.kubernetes.io/part-of":    "jaeger",
-		"app.kubernetes.io/managed-by": "jaeger-operator",
-	}
+	return util.ProcessLabels(
+		map[string]string{
+			"app":                          "jaeger", // TODO(jpkroehling): see collector.go in this package
+			"app.kubernetes.io/name":       q.name(),
+			"app.kubernetes.io/instance":   q.jaeger.Name,
+			"app.kubernetes.io/component":  "query",
+			"app.kubernetes.io/part-of":    "jaeger",
+			"app.kubernetes.io/managed-by": "jaeger-operator",
+		})
 }
 
 func (q *Query) name() string {

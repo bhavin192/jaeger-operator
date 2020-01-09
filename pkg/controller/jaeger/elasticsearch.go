@@ -15,6 +15,7 @@ import (
 	v1 "github.com/jaegertracing/jaeger-operator/pkg/apis/jaegertracing/v1"
 	"github.com/jaegertracing/jaeger-operator/pkg/inventory"
 	esv1 "github.com/jaegertracing/jaeger-operator/pkg/storage/elasticsearch/v1"
+	"github.com/jaegertracing/jaeger-operator/pkg/util"
 )
 
 var (
@@ -25,10 +26,11 @@ var (
 func (r *ReconcileJaeger) applyElasticsearches(jaeger v1.Jaeger, desired []esv1.Elasticsearch) error {
 	opts := []client.ListOption{
 		client.InNamespace(jaeger.Namespace),
-		client.MatchingLabels(map[string]string{
-			"app.kubernetes.io/instance": jaeger.Name,
-			"app.kubernetes.io/part-of":  "jaeger",
-		}),
+		client.MatchingLabels(util.ProcessLabels(
+			map[string]string{
+				"app.kubernetes.io/instance": jaeger.Name,
+				"app.kubernetes.io/part-of":  "jaeger",
+			})),
 	}
 	list := &esv1.ElasticsearchList{}
 	if err := r.client.List(context.Background(), list, opts...); err != nil {

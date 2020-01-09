@@ -46,14 +46,15 @@ func (u *UIConfig) Get() *corev1.ConfigMap {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      fmt.Sprintf("%s-ui-configuration", u.jaeger.Name),
 			Namespace: u.jaeger.Namespace,
-			Labels: map[string]string{
-				"app":                          "jaeger",
-				"app.kubernetes.io/name":       fmt.Sprintf("%s-ui-configuration", u.jaeger.Name),
-				"app.kubernetes.io/instance":   u.jaeger.Name,
-				"app.kubernetes.io/component":  "ui-configuration",
-				"app.kubernetes.io/part-of":    "jaeger",
-				"app.kubernetes.io/managed-by": "jaeger-operator",
-			},
+			Labels: util.ProcessLabels(
+				map[string]string{
+					"app":                          "jaeger",
+					"app.kubernetes.io/name":       fmt.Sprintf("%s-ui-configuration", u.jaeger.Name),
+					"app.kubernetes.io/instance":   u.jaeger.Name,
+					"app.kubernetes.io/component":  "ui-configuration",
+					"app.kubernetes.io/part-of":    "jaeger",
+					"app.kubernetes.io/managed-by": "jaeger-operator",
+				}),
 			OwnerReferences: []metav1.OwnerReference{
 				metav1.OwnerReference{
 					APIVersion: u.jaeger.APIVersion,

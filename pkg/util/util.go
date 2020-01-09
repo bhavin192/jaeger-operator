@@ -143,14 +143,15 @@ func AsOwner(jaeger *v1.Jaeger) metav1.OwnerReference {
 
 // Labels returns recommended labels
 func Labels(name, component string, jaeger v1.Jaeger) map[string]string {
-	return map[string]string{
-		"app":                          "jaeger",
-		"app.kubernetes.io/name":       name,
-		"app.kubernetes.io/instance":   jaeger.Name,
-		"app.kubernetes.io/component":  component,
-		"app.kubernetes.io/part-of":    "jaeger",
-		"app.kubernetes.io/managed-by": "jaeger-operator",
-	}
+	return ProcessLabels(
+		map[string]string{
+			"app":                          "jaeger",
+			"app.kubernetes.io/name":       name,
+			"app.kubernetes.io/instance":   jaeger.Name,
+			"app.kubernetes.io/component":  component,
+			"app.kubernetes.io/part-of":    "jaeger",
+			"app.kubernetes.io/managed-by": "jaeger-operator",
+		})
 }
 
 // GetEsHostname return first ES hostname from options map
@@ -215,4 +216,23 @@ func ImageName(image, param string) string {
 		}
 	}
 	return image
+}
+
+// ProcessLabels will modify the label values according to Kubernetes
+// spec requirements
+func ProcessLabels(l map[string]string) map[string]string {
+	newLabels := map[string]string{}
+	for k, v := range l {
+		if len(v) > 63 {
+			tl := v[:63]
+			if c := tl[len(tl)-1]; c == '-' || c == '_' || c == '.' {
+				tl = tl[:len(tl)-1]
+			}
+			newLabels[k] = tl
+
+		} else {
+			newLabels[k] = v
+		}
+	}
+	return newLabels
 }
